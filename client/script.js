@@ -1,7 +1,7 @@
 import bot from './assets/bot.svg';
 import user from './assets/user.svg';
 
-const form = document.getquerySelector('form');
+const form = document.querySelector('form');
 const chatContainer = document.querySelector('#chat_container');
 
 // global variable to show the loader
@@ -44,3 +44,60 @@ function typeText(element, text){
     }
   }, 20);
 }
+
+// This function generates a unique ID by combining a timestamp and a random number, 
+// and converting the random number to a hexadecimal string. The resulting ID is returned as a string 
+// in the format "id-{timestamp}-{hexadecimal string}".
+function generateUniqueID(){
+  const timeStamp = Date.now();
+  const randomNumber = Math.random();
+  const hexaDecimalString = randomNumber.toString(16);
+
+  return `id-${timeStamp}-${hexaDecimalString}`;
+}
+
+function chatStripe (isAi, value, uniqueId) {
+  return (
+    `
+    <div class="wrapper ${isAi && 'ai'}">
+      <div class="chat">
+        <div class="profile">
+          <img src="${isAi ? bot : user}" alt="${isAi ? 'bot' : 'user'}">
+        </div>
+        <div class="message" id="${uniqueId}">
+          ${value}
+          </div>
+      </div>
+    </div>
+    `
+  )
+}
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const Data = new FormData(form);
+
+  // users chat stripe
+  chatContainer.innerHTML += chatStripe(false, Data.get('prompt'));
+
+  // clear the input field
+  form.reset();
+
+  // bots chat stripe
+  const uniqueId = generateUniqueID();
+  chatContainer.innerHTML += chatStripe(true, '', uniqueId);
+
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+
+  const messageDiv = document.getElementById(uniqueId);
+
+  loader(messageDiv);
+}
+
+form.addEventListener('submit', handleSubmit);
+form.addEventListener('keyup', (e) => {
+  if(e.keyCode === 13){
+    handleSubmit(e);
+  }
+});
